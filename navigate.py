@@ -8,19 +8,101 @@ def linear_interpolation(color1, color2, t):
 
 
 # Image size (pixels)
-WIDTH = 800
-HEIGHT = 600
+WIDTH = 12000
+HEIGHT = 8000
 
 def naviLoop():
+    xMoves = {
+        'E': 0.025, 'e': 0.00125,
+        'Z': -0.025, 'z': -0.00125,
+        'Q': -0.025, 'q': -0.00125,
+        'C': 0.025, 'c': 0.00125,
+        'D': 0.05,'d':0.0025,
+        'A':-0.05, 'a':-0.0025,
+
+        
+        '3': 0.0000525,
+        '7': -0.0000525,
+        '9': 0.0000525,
+        '4': -0.0001,
+        '1': -0.0000525,
+        '6': 0.0001,
+        '':0
+        }
+    yMoves = {
+        'Q': 0.025, 'q': 0.00125,
+        'E': 0.025, 'e': 0.00125,
+        'Z': -0.025, 'z': -0.00125,
+        'W': 0.05, 'w':0.0025,
+        'S':-0.05, 's':-0.0025,
+        'C': -0.025, 'c': -0.00125,
+
+        '8': 0.0001,
+        '7': 0.0000525,
+        '9': 0.0000525,
+        '2': -0.0001,
+        '1': -0.0000525,
+        '3': -0.0000525,
+        '':0
+        }
+    # Set initial coords
+    #print("Enter X: ", end = '')
+    #x = eval(input())
+    x = -.3449999
+    #print("Enter Y: ", end = '')
+    #y = eval(input())
+    y = -.64250
+    
+    navigate(x, y, True)
+    print("Navigating to:",x,y)
+    print("Done\n")
+    
+    # Main loop
     while True:
-        print("Enter X: ", end = '')
-        x = eval(input())
-        print("Enter Y: ", end = '')
-        y = eval(input())
+        
+        print("Enter movement: ", end = '')
+        entry = input()
+        if entry == "$128":
+            printChart(x, y, 1/128, True); continue
+        if entry == "$256":
+            printChart(x, y, 1/256, True); continue
+        if entry == "$512":
+            printChart(x, y, 1/512, True); continue
+        if entry == "$1024":
+            printChart(x, y, 1/1024, True); continue
+            
+        xChange = 0
+        yChange = 0
+        
+        for i in entry:
+            if i in xMoves:
+                xChange += xMoves[i]
+            if i in yMoves:
+                yChange -= yMoves[i]
+        x += xChange
+        y += yChange
+
         navigate(x, y, True)
+        print("Navigating to:",x,y)
+        print("Done\n")
+
+
+        '''
+        xMove = input()
+        if xMove in moves:
+            x = x + moves[xMove]
+        else: print('invalid input'); continue
+
+        print("Enter Y move: ", end = '')
+        yMove = input()
+        if yMove in moves:
+            y = y + moves[yMove]
+        else: print('invalid input'); continue
+        '''
+        
 
 def navigate(x, y, crossHairs, times = 3):
-    printZooms(x, y, 1, times, crossHairs, 4)
+    printZooms(x, y, 1, times, crossHairs, 8)
     print()
     print("#######################################################")
     print("######################## Done #########################")
@@ -54,7 +136,7 @@ def getZooms(start, times, mag):
 # Print as many images as Ztimes.
 # mag is the amount (times) to magnify each time.
 #      - So mag = 2 means is gets twice as big each time
-def printZooms(x, y, Zstart, Ztimes, crossHairs, mag = 2,):
+def printZooms(x, y, Zstart, Ztimes, crossHairs, mag = 2):    # Change default mag interval
     zoomList = getZooms(Zstart, Ztimes, mag)
     counter = 1
     for i in zoomList:
@@ -142,9 +224,9 @@ def printChart(X, Y, zoom, crossHairs, counter=1):
 
 # printZooms takes 6 args:
 #         (x, y, initial zoom, images, crossHairBool, mag-optional)
-#printZooms(-.749, .149, 1, 16, False, 4)
+printZooms(-0.3449474, -0.6425525, 1, 16, False, 2)
 
-naviLoop()
+#naviLoop()
 #navigate(-1.1883, 0.242, 3)
 
 #printChart(-1.1883, 0.242, .25, False)
