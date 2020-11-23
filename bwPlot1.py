@@ -26,8 +26,8 @@ def getPoints(x1,x2,y1):
     return points
     
 # Image size (pixels)
-WIDTH = 1800
-HEIGHT = 1200
+WIDTH = 1200
+HEIGHT = 800
 
 '''
 # Plot window ORIGINAL
@@ -41,8 +41,13 @@ IM_END = 1
 #points = getPoints(-1, -.5, -.5)  #output3.png
 #points = getPoints(-.795, -.74, .12) #output4.png
 points = getPoints(-.82, -.78, .158) #output5.png
+points = getPoints(-.81, -.80, .158)
 
+# print Actions
+print("Creating file")
+print("Width: "+str(WIDTH)+" Height: "+str(HEIGHT))
 print(points)
+
 start = (points[0], points[1] )
 end =   (points[2], points[3] )
 RE_START = start[0]
@@ -53,6 +58,7 @@ IM_END = end[1]
 palette = []
 
 # Color Version
+'''
 im = Image.new('HSV', (WIDTH, HEIGHT), (0, 0, 0))
 draw = ImageDraw.Draw(im)
 
@@ -71,9 +77,9 @@ for x in range(0, WIDTH):
         draw.point([x, y], (hue, saturation, value))
 
 im.convert('RGB').save('output.png', 'PNG')
-
-#Black and White
 '''
+#Black and White
+
 im = Image.new('RGB', (WIDTH, HEIGHT), (0, 0, 0))
 draw = ImageDraw.Draw(im)
 for x in range(0, WIDTH):
@@ -89,9 +95,11 @@ for x in range(0, WIDTH):
         draw.point([x, y], (color, color, color))
 
 im.save('output.png', 'PNG')
-'''
 
 
+
+print("#################### DONE #######################")
+print("#################### DONE #######################")
 print("#################### DONE #######################")
 
 

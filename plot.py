@@ -17,8 +17,8 @@ def getPoints(x1,x2,y1):
     return points
 
 # Image size (pixels)
-WIDTH = 6000
-HEIGHT = 4000
+WIDTH = 12000
+HEIGHT = 8000
 '''
 # Plot window
 RE_START = -2
@@ -37,6 +37,10 @@ IM_START = start[1]
 RE_END = end[0]
 IM_END = end[1]
 
+# print Actions
+print("Creating file")
+print("Width: "+str(WIDTH)+" Height: "+str(HEIGHT))
+print(points)
 
 histogram = defaultdict(lambda: 0)
 values = {}
@@ -49,8 +53,8 @@ for x in range(0, WIDTH):
         m = mandelbrot(c)
         
         values[(x, y)] = m
-        if m < MAX_ITER: # Test
-        #if m < MAX_ITER - (MAX_ITER * .25): # Test
+        #if m < MAX_ITER: # Test
+        if m < MAX_ITER - (MAX_ITER * .1): # Test
             histogram[floor(m)] += 1
 
 total = sum(histogram.values())
