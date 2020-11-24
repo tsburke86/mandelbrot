@@ -3,7 +3,7 @@ from collections import defaultdict
 from math import floor, ceil
 
 # Iterations
-MAX_ITER = 150
+MAX_ITER = 80
 # Image size (pixels)
 WIDTH = 600
 HEIGHT = 400
@@ -149,12 +149,12 @@ def naviLoop():
     y = -0.6422024999999997
 
     #zStart = 1
-    zStart = 2
+    zStart = .25
     crossHairs = True
-    printHelp()
+    #printHelp()
     print("Generating Images for:",x,y)
     print()
-    printZooms(x, y, zStart, 3, crossHairs, 1.5)
+    printZooms(x, y, zStart, 2, crossHairs)
     print("######################## Done #########################")
     print("#######################################################")
     print()
@@ -238,8 +238,10 @@ def naviLoop():
         commandBool = False
         print("Generating Images for:",x,y)
         print()
+        if xChange or yChange: print("Change in X: "+str(xChange)+\
+                          "\nChange in Y: "+str(yChange))
         print()
-        printZooms(x, y, zStart, 2, crossHairs, 1.5)
+        printZooms(x, y, zStart, 2, crossHairs)
         print("######################## Done #########################")
         print("#######################################################")
         print()
@@ -363,11 +365,24 @@ def printChart(X, Y, zoom, crossHairs, counter=1):
             
    
 
-    draw.rectangle((0, 0, WIDTH, 28), outline='black', fill='black')
+    
     #Cross Hairs
-    if crossHairs: draw.text((WIDTH/2-WIDTH*.05, HEIGHT/2-HEIGHT *.1),"+",(0,0,255), font=font1)
-    draw.text((4,0),details, (0,0,255), font=font2)
-    draw.text((4,14),"Coordinates: "+coordinates, (0,0,255), font=font2 )
+    if crossHairs:
+        mag1 = .25
+        X1 = (WIDTH/2-WIDTH*mag1)
+        X2 = (WIDTH/2+WIDTH*mag1)
+        Ycenter = HEIGHT/2
+        Y1 = HEIGHT/2-HEIGHT *mag1
+        Y2 = HEIGHT/2+HEIGHT*mag1
+        Xcenter = WIDTH /2
+        draw.line((X1, Ycenter, X2, Ycenter), fill=(0,0,255), width = 1)
+        draw.rectangle((X1, Y1, X2, Y2), outline = (0,0,255))
+        draw.line((Xcenter, Y1, Xcenter, Y2), fill=(0,0,255), width = 1)
+        
+    # Add Text
+    draw.rectangle((0, 0, WIDTH, 28), outline='black', fill='black')
+    draw.text((4,0),details, (0,0,255))
+    draw.text((4,14),"Coordinates: "+coordinates, (0,0,255))
     
     im.convert('RGB').save(name, 'PNG')
   
