@@ -3,7 +3,7 @@ from collections import defaultdict
 from math import floor, ceil
 
 # Iterations
-MAX_ITER = 80
+MAX_ITER = 20
 # Image size (pixels)
 WIDTH = 600
 HEIGHT = 400
@@ -27,11 +27,14 @@ def linear_interpolation(color1, color2, t):
 
 def setMaxIter(oldValue):
     while True:
-        print("Enter new Interation Value between 80-500 (currently: "+str(oldValue)+"): ",end='')
-        entry = eval(input())
-        if 80 <= entry <= 500:
+        print("Enter new Interation Value between 10-500 (currently: "+str(oldValue)+"): ",end='')
+        entry = input()
+        try: eval(entry)
+        except NameError:print("Invald input");continue
+        entry = eval(entry)
+        if 10 <= entry <= 500:
             return entry
-
+        
 
 def printCommands():
     print()
@@ -42,7 +45,7 @@ def printCommands():
     print("  +/-\t| zoom in or out by a factor of 2 on the initial image")
     print("  $\t| Sets the max iteration ")
     print("  %N\t| Set the zoom for the initial image to N.")
-    print("    \t|  -- Accepts: %1, %128, %256, %512, %1024")
+    print("    \t|  -- Accepts:%0 %1, %16, %48, %128, %256, %512, %1024")
     print()
 
 def printMoves():
@@ -149,12 +152,16 @@ def naviLoop():
     y = -0.6422024999999997
 
     #zStart = 1
-    zStart = .25
+    zStart = 4
     crossHairs = True
     #printHelp()
     print("Generating Images for:",x,y)
     print()
-    printZooms(x, y, zStart, 2, crossHairs)
+    # printZooms takes 6 args:
+#         (x, y, initial zoom, images, crossHairBool, mag-optional)
+    printZooms(x, y, zStart, 3, crossHairs,4)
+
+    
     print("######################## Done #########################")
     print("#######################################################")
     print()
@@ -203,8 +210,20 @@ def naviLoop():
                 print(" --Disabling Cross Hairs")
                 commandBool=True;continue
         # Set zoom value
+        if entry == "%0":
+            zStart = 4
+            print(" --Zoom Start Value set to: "+str(int(1 / zStart))+"x")
+            commandBool=True;continue
         if entry == "%1":
             zStart = 1
+            print(" --Zoom Start Value set to: "+str(int(1 / zStart))+"x")
+            commandBool=True;continue
+        if entry == "%16":
+            zStart = 1/16
+            print(" --Zoom Start Value set to: "+str(int(1 / zStart))+"x")
+            commandBool=True;continue
+        if entry == "%48":
+            zStart = 1/48
             print(" --Zoom Start Value set to: "+str(int(1 / zStart))+"x")
             commandBool=True;continue
         if entry == "%128":
@@ -241,7 +260,9 @@ def naviLoop():
         if xChange or yChange: print("Change in X: "+str(xChange)+\
                           "\nChange in Y: "+str(yChange))
         print()
-        printZooms(x, y, zStart, 2, crossHairs)
+        
+        # Print it
+        printZooms(x, y, zStart, 3, crossHairs,4)
         print("######################## Done #########################")
         print("#######################################################")
         print()
@@ -297,7 +318,7 @@ def printZooms(x, y, Zstart, Ztimes, crossHairs, mag = 2):    # Change default m
 def printChart(X, Y, zoom, crossHairs, counter=1):
     crossHairs = crossHairs
     points, xSpread, ySpread = getPoints(X, Y, zoom)
-    printZoom = str(int(1 / zoom))
+    printZoom = str(1 / zoom)
     start = (points[0], points[1] )
     end =   (points[2], points[3] )
     RE_START = start[0]
@@ -368,7 +389,7 @@ def printChart(X, Y, zoom, crossHairs, counter=1):
     
     #Cross Hairs
     if crossHairs:
-        mag1 = .25
+        mag1 = .125
         X1 = (WIDTH/2-WIDTH*mag1)
         X2 = (WIDTH/2+WIDTH*mag1)
         Ycenter = HEIGHT/2
