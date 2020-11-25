@@ -2,15 +2,12 @@ from PIL import Image, ImageDraw, ImageFont
 from collections import defaultdict
 from math import floor, ceil
 
-# Iterations
-MAX_ITER = 20
-# Image size (pixels)
-WIDTH = 600
-HEIGHT = 400
+
 
 from math import log, log2
 
-def mandelbrot(c):
+def mandelbrot(c,m):
+    MAX_ITER = m
     z = 0
     n = 0
     while abs(z) <= 2 and n < MAX_ITER:
@@ -27,12 +24,13 @@ def linear_interpolation(color1, color2, t):
 
 def setMaxIter(oldValue):
     while True:
-        print("Enter new Interation Value between 10-500 (currently: "+str(oldValue)+"): ",end='')
+        print("Enter new Interation Value between 5-1000 (currently: "+str(oldValue)+"): ",end='')
         entry = input()
+        if entry == '':continue
         try: eval(entry)
         except NameError:print("Invald input");continue
         entry = eval(entry)
-        if 10 <= entry <= 500:
+        if 5 <= entry <= 1000:
             return entry
         
 
@@ -41,9 +39,11 @@ def printCommands():
     print("## COMMANDS ##")
     print("Command | Description |")
     print("--------|--------------")
-    print("  X\t| Toggles Cross Hairs")
     print("  +/-\t| zoom in or out by a factor of 2 on the initial image")
-    print("  $\t| Sets the max iteration ")
+    print("  X\t| Toggles Cross Hairs")
+    print("  dis\t| Toggles details printed on image")
+    print("  iter\t| Sets the max iteration ")
+    print("  res\t| Sets the resolution")
     print("  %N\t| Set the zoom for the initial image to N.")
     print("    \t|  -- Accepts:%0 %1, %16, %48, %128, %256, %512, %1024")
     print()
@@ -105,10 +105,36 @@ def printDetails(name, X, Y, xSpread, res, printZoom,
     print("Center Coordinates: X:"+str(X)+" Y:"+str(Y))
     print("X Spread: "+str(xSpread)+" | FOV = "+fov)
     print()
-    print("#######################################################")
+    print('Calculating...')
+    
+def setResolution(oldValue):
+    res = {
+        '1':(600,400),
+        '2':(800,600),
+        '3':(1200,800),
+        '4':(1800,1200)
+        }
+    for key,value in res.items():print(key,value)
+    
+    while True:
+        print("Enter the number for the new resolution (currently: "+\
+              str(oldValue)+"x"+str(oldValue*.75)+"): ",end='')
+        entry = str(input())
+        if entry == '':continue
+        
+        if entry in res:
+            WIDTH = res[entry][0]
+            HEIGHT = res[entry][1]
+            return WIDTH, HEIGHT
+        else:print("Invalid input")
     
     
 def naviLoop():
+    #   Iterations
+    MAX_ITER = 80
+    #   Image size (pixels)
+    WIDTH = 600
+    HEIGHT = 400
     
     xMoves = {
         # Big movements
@@ -147,19 +173,30 @@ def naviLoop():
         '':0
         }
     # Set initial coords
-    
+    #X:-0.7692813199999996 Y:0.1069251250000002
+    x= -0.7692813199999996
+    y= 0.1069251250000002
+    '''
     x = -0.34515740000000006
     y = -0.6422024999999997
-
-    #zStart = 1
-    zStart = 4
+    '''
+    #zStart = 4
+    zStart = 1/128
+    zTimes = 2
+    
+    #   Cross Hairs
     crossHairs = True
+    #crossHairs = False
+
+    #   Details on image
+    display = True
+    #display = False
     #printHelp()
     print("Generating Images for:",x,y)
     print()
-    # printZooms takes 6 args:
-#         (x, y, initial zoom, images, crossHairBool, mag-optional)
-    printZooms(x, y, zStart, 3, crossHairs,4)
+    # printZooms:
+
+    printZooms(x, y, WIDTH, HEIGHT, MAX_ITER, zStart, zTimes, crossHairs, display,)
 
     
     print("######################## Done #########################")
@@ -182,10 +219,15 @@ def naviLoop():
             printHelp();continue
 
         # Set Iterations
-        if entry == "$":
-            global MAX_ITER
+        if entry.upper() == "ITER":
             MAX_ITER = setMaxIter(MAX_ITER)
             print(" --Max Iterations set to: "+str(MAX_ITER))
+            commandBool=True;continue
+
+         # Set Resolution
+        if entry.upper() == "RES":
+            WIDTH, HEIGHT = setResolution(WIDTH)
+            print(" --Resolution set to: "+str(WIDTH)+"x"+str(HEIGHT))
             commandBool=True;continue
         # Increase Zoom
         
@@ -200,7 +242,7 @@ def naviLoop():
                 commandBool=True;continue
             else: print(" --Zoom already at 1");continue
         # Toggle Cross Hairs
-        if entry == "x" or entry =='X':
+        if entry.upper() =='X':
             if crossHairs == False:
                 crossHairs = True
                 print(" --Enabling Cross Hairs")
@@ -208,6 +250,16 @@ def naviLoop():
             else:
                 crossHairs = False
                 print(" --Disabling Cross Hairs")
+                commandBool=True;continue
+        # Toggle Display
+        if entry.upper() =='DIS':
+            if display == False:
+                display = True
+                print(" --Enabling Display")
+                commandBool=True;continue
+            else:
+                display = False
+                print(" --Disabling Display")
                 commandBool=True;continue
         # Set zoom value
         if entry == "%0":
@@ -262,7 +314,8 @@ def naviLoop():
         print()
         
         # Print it
-        printZooms(x, y, zStart, 3, crossHairs,4)
+        #         X, Y, WIDTH, HEIGHT, MAX_ITER, Zstart, Ztimes, crossHairs, display, mag = 4
+        printZooms(x, y, WIDTH, HEIGHT, MAX_ITER, zStart, zTimes, crossHairs, display,)
         print("######################## Done #########################")
         print("#######################################################")
         print()
@@ -271,15 +324,6 @@ def naviLoop():
         print()
 
         
-
-def navigate(x, y, crossHairs, zStart, times = 3):
-    printZooms(x, y, zStart, times, crossHairs, 8)
-    print()
-    print("#######################################################")
-    print("######################## Done #########################")
-    print("#######################################################")
-    
-
 # Set the x,y start end points based on the center pixel
 def getPoints(x, y, xSpread):
     x1 = x - xSpread / 2
@@ -304,19 +348,46 @@ def getZooms(start, times, mag):
         zoomList.append(start)
     return zoomList
 
+def getIters(start, times, interval):
+    iterList = [start]
+    for i in range(times -1 ):
+        start += interval
+        iterList.append(start)
+    return iterList
+
+def printIters(X, Y, zoom, WIDTH, HEIGHT, Istart, Itimes, Iinterval, crossHairs, display):    # Change default mag interval
+    iterList = getIters(Istart, Itimes, Iinterval)
+    counter = 1
+    for i in iterList:
+        printChart(X, Y, zoom, WIDTH, HEIGHT, i, crossHairs, display, counter)
+        counter +=1
+
 # Print as many images as Ztimes.
 # mag is the amount (times) to magnify each time.
 #      - So mag = 2 means is gets twice as big each time
-def printZooms(x, y, Zstart, Ztimes, crossHairs, mag = 2):    # Change default mag interval
+def printZooms(X, Y, WIDTH, HEIGHT, MAX_ITER, Zstart, Ztimes, crossHairs, display, mag = 4):    # Change default mag interval
     zoomList = getZooms(Zstart, Ztimes, mag)
     counter = 1
-    for i in zoomList:
-        printChart(x, y, i, crossHairs, counter)
+    for zoom in zoomList:
+        printChart(X, Y, zoom, WIDTH, HEIGHT, MAX_ITER, crossHairs, display, counter)
         counter +=1
-    
-    
-def printChart(X, Y, zoom, crossHairs, counter=1):
+
+def printTime(t):
+    minutes = 0
+    seconds = t
+    if t > 60:
+        minutes = t // 60
+    seconds = format(t % 60, '.4f')
+    return str(minutes)+' minutes and '+seconds+' seconds.'
+#              1  2  3        4     5       6          7         8          9
+def printChart(X, Y, zoom, WIDTH, HEIGHT, MAX_ITER, crossHairs, display,  counter=1):
+    import time as t
+    tStart = t.time() 
+    '''
     crossHairs = crossHairs
+    display = display
+    MAX_ITER = MAX_ITER
+    '''
     points, xSpread, ySpread = getPoints(X, Y, zoom)
     printZoom = str(1 / zoom)
     start = (points[0], points[1] )
@@ -335,8 +406,14 @@ def printChart(X, Y, zoom, crossHairs, counter=1):
     if xSpread < 1:
         precision = str(len(str(xSpread))-2)
     else: precision = str(1)
-    #name = 'navi-'+printZoom+'x-'+str(counter)+'.png'
-    name = 'navi-'+str(counter)+'.png'
+
+    # Naming
+    
+    #name = 'zoom-'+printZoom+'x-'+str(counter)+'.png'
+    name = 'iter-'+printZoom+'x-'+str(counter)+'.png'
+    
+    #name = 'navi-'+str(counter)+'.png'
+    #name = 'main-'+printZoom+'x'+res+'.png'
     printDetails(name, X, Y, xSpread, res, printZoom,
                  iterations, precision, numbersCounted)
     # Print Data on Image
@@ -356,7 +433,7 @@ def printChart(X, Y, zoom, crossHairs, counter=1):
             c = complex(RE_START + (x / WIDTH) * (RE_END - RE_START),
                         IM_START + (y / HEIGHT) * (IM_END - IM_START))
             # Compute the number of iterations
-            m = mandelbrot(c)
+            m = mandelbrot(c, MAX_ITER)
             
             values[(x, y)] = m
             if m < MAX_ITER: # Test
@@ -399,32 +476,59 @@ def printChart(X, Y, zoom, crossHairs, counter=1):
         draw.line((X1, Ycenter, X2, Ycenter), fill=(0,0,255), width = 1)
         draw.rectangle((X1, Y1, X2, Y2), outline = (0,0,255))
         draw.line((Xcenter, Y1, Xcenter, Y2), fill=(0,0,255), width = 1)
-        
-    # Add Text
-    draw.rectangle((0, 0, WIDTH, 28), outline='black', fill='black')
-    draw.text((4,0),details, (0,0,255))
-    draw.text((4,14),"Coordinates: "+coordinates, (0,0,255))
+      
+    # Add Details
+    if display:
+        draw.rectangle((0, 0, WIDTH, 28), outline='black', fill='black')
+        draw.text((4,0),details, (0,0,255))
+        draw.text((4,14),"Coordinates: "+coordinates, (0,0,255))
     
+    # save file
     im.convert('RGB').save(name, 'PNG')
+
+    # print Time
+    tEnd = t.time()
+    tDif = tEnd - tStart
+    print()
+    print("Elapsed Time: "+printTime(tDif))
+    print()
+    print("#######################################################")
   
 
 # printZooms takes 6 args:
 #         (x, y, initial zoom, images, crossHairBool, mag-optional)
 #printZooms(-0.3449474, -0.6425525, 1, 16, False, 2)
 
-naviLoop()
-#navigate(-1.1883, 0.242, 3)
+#naviLoop()
 
-#printChart(-1.1883, 0.242, .25, False)
-#printZooms(-0.3449474, -0.6425525, 1/4, 3, False, 2)
+printIters(-0.7692813199999996, # X,
+           0.1069251250000002,  # Y
+           1/128,                 # zoom,
+           4800,                  # WIDTH,               
+           3600,                  # HEIGHT,
+           200,                   # Istart,
+           10,                   # Itimes,
+           20,                    # Iinterval,
+           crossHairs = False,
+           display = False)
+
+print('done')
+
 
 
 '''
 Cool Locations:
-
+X:-0.7806635625 Y:-0.14670003249999977
 X: -1.1883  Y: 0.242
 X: -0.749  Y: 0.149 
 X:-0.34515734750000004 Y:-0.6422024474999997
 X:-0.11640740000000008 Y:-0.6497024999999994
+
+ Resolution: 600x400
+  Zoom: 128.0x
+  Iterations: 240
+
+Center Coordinates: X:-0.7692813199999996 Y:0.1069251250000002
+
 
 '''
