@@ -1,4 +1,5 @@
-from PIL import Image, ImageDraw, ImageFont
+from tkinter import *
+from PIL import Image, ImageDraw, ImageFont, ImageTk
 from collections import defaultdict
 from math import floor, ceil
 
@@ -135,17 +136,39 @@ def naviLoop():
     #   Image size (pixels)
     WIDTH = 600
     HEIGHT = 400
+
+    # Set initial coords
+    #X:-0.7692813199999996 Y:0.1069251250000002
+    x= -0.7692813199999996
+    y= 0.1069251250000002
+
+    #zStart = 4
+    zStart = 2
+    zTimes = 2
     
+    #   Cross Hairs
+    crossHairs = True
+    #crossHairs = False
+
+    #   Details on image
+    display = True
+    #display = False
+
+    # The amount you can move
+    big = 1/16
+    bigD = big / 2
+    small = big / 4
+    smallD = small / 2
     xMoves = {
         # Big movements
-        'E': 0.025, 'e': 0.000125,
-        'Z': -0.025, 'z': -0.000125,
-        'Q': -0.025, 'q': -0.000125,
-        'C': 0.025, 'c': 0.000125,
-        'D': 0.05,'d':0.00025,
-        'A':-0.05, 'a':-0.00025,
+        'E': bigD, 'e': smallD,
+        'Z': -bigD, 'z': -smallD,
+        'Q': -bigD, 'q': -smallD,
+        'C': bigD, 'c': smallD,
+        'D': big,'d':small,
+        'A':-big, 'a':-small,
 
-        # Small movements
+        # micro movements
         '3': 0.0000000525,
         '7': -0.0000000525,
         '9': 0.0000000525,
@@ -156,14 +179,14 @@ def naviLoop():
         }
     yMoves = {
         # Big movements
-        'Q': 0.025, 'q': 0.000125,
-        'E': 0.025, 'e': 0.000125,
-        'Z': -0.025, 'z': -0.000125,
-        'W': 0.05, 'w':0.00025,
-        'S':-0.05, 's':-0.00025,
-        'C': -0.025, 'c': -0.000125,
+        'Q': bigD, 'q': smallD,
+        'E': bigD, 'e': smallD,
+        'Z': -bigD, 'z': -smallD,
+        'W': big, 'w':small,
+        'S':-big, 's':small,
+        'C': -bigD, 'c': -smallD,
 
-        # Small movements
+        # micro movements
         '8': 0.0000001,
         '7': 0.0000000525,
         '9': 0.0000000525,
@@ -172,25 +195,12 @@ def naviLoop():
         '3': -0.0000000525,
         '':0
         }
-    # Set initial coords
-    #X:-0.7692813199999996 Y:0.1069251250000002
-    x= -0.7692813199999996
-    y= 0.1069251250000002
+    
     '''
     x = -0.34515740000000006
     y = -0.6422024999999997
     '''
-    #zStart = 4
-    zStart = 1/128
-    zTimes = 2
-    
-    #   Cross Hairs
-    crossHairs = True
-    #crossHairs = False
-
-    #   Details on image
-    display = True
-    #display = False
+  
     #printHelp()
     print("Generating Images for:",x,y)
     print()
@@ -304,8 +314,8 @@ def naviLoop():
                 xChange += xMoves[i]
             if i in yMoves:
                 yChange -= yMoves[i]
-        x += xChange
-        y += yChange
+        x += xChange * zStart
+        y += yChange * zStart
         commandBool = False
         print("Generating Images for:",x,y)
         print()
@@ -316,12 +326,41 @@ def naviLoop():
         # Print it
         #         X, Y, WIDTH, HEIGHT, MAX_ITER, Zstart, Ztimes, crossHairs, display, mag = 4
         printZooms(x, y, WIDTH, HEIGHT, MAX_ITER, zStart, zTimes, crossHairs, display,)
+        displayImage()
         print("######################## Done #########################")
         print("#######################################################")
         print()
         if xChange or yChange: print("Change in X: "+str(xChange)+\
                           "\nChange in Y: "+str(yChange))
         print()
+def displayImage():
+    window = Tk()
+    window.title("Mandelbrot Navigator v4.20")
+    # Left Side
+    frame1 = Frame(window)
+    frame1.pack(side = LEFT)
+
+
+
+    # Right Side
+    frame2 = Frame(window)
+    frame2.pack(side = RIGHT)
+    # Image 1
+    canvas1 = Canvas(frame2, width = 600, height = 400)  
+    canvas1.pack()  
+    img1 = ImageTk.PhotoImage(Image.open("navi-1.png"))  
+    canvas1.create_image(10, 10, anchor=NW, image=img1)
+    # Image 2
+    canvas2 = Canvas(frame2, width = 600, height = 400)  
+    canvas2.pack(side = BOTTOM)  
+    img2 = ImageTk.PhotoImage(Image.open("navi-2.png"))  
+    canvas2.create_image(10, 10, anchor=NW, image=img2)
+
+    window.mainloop()
+
+
+
+
 
         
 # Set the x,y start end points based on the center pixel
@@ -383,11 +422,6 @@ def printTime(t):
 def printChart(X, Y, zoom, WIDTH, HEIGHT, MAX_ITER, crossHairs, display,  counter=1):
     import time as t
     tStart = t.time() 
-    '''
-    crossHairs = crossHairs
-    display = display
-    MAX_ITER = MAX_ITER
-    '''
     points, xSpread, ySpread = getPoints(X, Y, zoom)
     printZoom = str(1 / zoom)
     start = (points[0], points[1] )
@@ -397,9 +431,9 @@ def printChart(X, Y, zoom, WIDTH, HEIGHT, MAX_ITER, crossHairs, display,  counte
     RE_END = end[0]
     IM_END = end[1]
 
-     # stuff for printing        
-    font1 = ImageFont.truetype("/usr/share/fonts/gnu-free/FreeMono.ttf", 48)
-    font2 = ImageFont.truetype("/usr/share/fonts/dejavu/DejaVuSansMono.ttf", 12)
+    # stuff for printing        
+    #font1 = ImageFont.truetype("/usr/share/fonts/gnu-free/FreeMono.ttf", 48)
+    #font2 = ImageFont.truetype("/usr/share/fonts/dejavu/DejaVuSansMono.ttf", 12)
     res = str(WIDTH)+"x"+str(HEIGHT)
     numbersCounted = str(WIDTH * HEIGHT)
     iterations = str(MAX_ITER)
@@ -410,9 +444,9 @@ def printChart(X, Y, zoom, WIDTH, HEIGHT, MAX_ITER, crossHairs, display,  counte
     # Naming
     
     #name = 'zoom-'+printZoom+'x-'+str(counter)+'.png'
-    name = 'iter-'+printZoom+'x-'+str(counter)+'.png'
+    ##name = 'iter-'+printZoom+'x-'+str(counter)+'.png'
     
-    #name = 'navi-'+str(counter)+'.png'
+    name = 'navi-'+str(counter)+'.png'
     #name = 'main-'+printZoom+'x'+res+'.png'
     printDetails(name, X, Y, xSpread, res, printZoom,
                  iterations, precision, numbersCounted)
@@ -499,8 +533,8 @@ def printChart(X, Y, zoom, WIDTH, HEIGHT, MAX_ITER, crossHairs, display,  counte
 #         (x, y, initial zoom, images, crossHairBool, mag-optional)
 #printZooms(-0.3449474, -0.6425525, 1, 16, False, 2)
 
-#naviLoop()
-
+naviLoop()
+'''
 printIters(-0.7692813199999996, # X,
            0.1069251250000002,  # Y
            1/128,                 # zoom,
@@ -514,7 +548,7 @@ printIters(-0.7692813199999996, # X,
 
 print('done')
 
-
+'''
 
 '''
 Cool Locations:
